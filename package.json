@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "next-sitemap",
     "start": "next start",
     "lint": "next lint"
   },
@@ -13,14 +14,22 @@
     "@emotion/styled": "^11.11.0",
     "@notionhq/client": "^2.2.5",
     "@prisma/client": "^4.16.2",
+    "draft-js": "^0.11.7",
     "next": "12.1.6",
+    "next-sitemap": "^4.1.8",
+    "nuka-carousel": "^6.0.3",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "react-draft-wysiwyg": "^1.15.0",
+    "react-image-gallery": "^1.2.12"
   },
   "devDependencies": {
+    "@types/draft-js": "^0.11.12",
     "@types/node": "20.3.2",
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.6",
+    "@types/react-draft-wysiwyg": "^1.13.4",
+    "@types/react-image-gallery": "^1.2.0",
     "autoprefixer": "^10.4.14",
     "eslint": "8.43.0",
     "eslint-config-next": "13.4.7",

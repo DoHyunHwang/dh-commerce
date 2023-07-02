@@ -9,7 +9,6 @@ generator client {
 datasource db {
   provider = "mysql"
   url = env("DATABASE_URL")
-  // relationMode = "prisma"
   referentialIntegrity = "prisma"
 }
 
@@ -23,6 +22,7 @@ model products {
   name String
   image_url String?
   category_id Int
+  contents String?
   createdAt DateTime @default(now())
 
   @@index([category_id])
