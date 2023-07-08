@@ -6,7 +6,9 @@ const prisma = new PrismaClient();
 async function getProduct(id: number) {
   try {
     const response = await prisma.products.findUnique({
-      where: { id },
+      where: {
+        id: id,
+      },
     });
     console.log(response);
     return response;
@@ -22,13 +24,11 @@ type Data = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const { id } = req.query;
-
+  if (id == null) {
+    res.status(400).json({ message: 'no id' });
+    return;
+  }
   try {
-    if (id == null) {
-      res.status(400).json({ message: 'no id' });
-      return;
-    }
-
     const products = await getProduct(Number(id));
     res.status(200).json({ items: products, message: 'Success' });
   } catch (error) {
