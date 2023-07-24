@@ -21,7 +21,9 @@ export default function CommentEdit() {
           if (data.items.contents) {
             setEditorState(EditorState.createWithContent(convertFromRaw(JSON.parse(data.items.contents))));
             setRate(data.items.rate);
-            setImages(data.items.images.split(',') ?? []);
+            if (data.items.images) {
+              setImages(data.items.images.split(',') ?? []);
+            }
           } else {
             setEditorState(EditorState.createEmpty());
           }
