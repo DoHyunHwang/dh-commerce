@@ -1,10 +1,10 @@
-import React, { Dispatch, SetStateAction } from 'react';
+import styled from '@emotion/styled';
 import { EditorState } from 'draft-js';
 import dynamic from 'next/dynamic';
+import { Dispatch, SetStateAction } from 'react';
 import { EditorProps } from 'react-draft-wysiwyg';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import Button from './Button';
-import styled from '@emotion/styled';
 
 const Editor = dynamic<EditorProps>(() => import('react-draft-wysiwyg').then((module) => module.Editor), {
   ssr: false,
@@ -13,16 +13,18 @@ const Editor = dynamic<EditorProps>(() => import('react-draft-wysiwyg').then((mo
 export default function CustomEditor({
   editorState,
   readOnly = false,
+  noPadding = false,
   onSave,
   onEditorStateChange,
 }: {
   editorState: EditorState;
   readOnly?: boolean;
+  noPadding?: boolean;
   onSave?: () => void;
   onEditorStateChange?: Dispatch<SetStateAction<EditorState | undefined>>;
 }) {
   return (
-    <Wrapper>
+    <Wrapper readOnly={readOnly} noPadding={noPadding}>
       <Editor
         readOnly={readOnly}
         editorState={editorState}
@@ -43,6 +45,7 @@ export default function CustomEditor({
   );
 }
 
-const Wrapper = styled.div`
-  padding: 16px;
+const Wrapper = styled.div<{ readOnly: boolean; noPadding: boolean }>`
+  ${(props) => (props.noPadding ? '' : 'padding: 16px;')}
+  ${(props) => (props.readOnly ? '' : `border: 1px solid black; border-radius: 8px;`)}
 `;

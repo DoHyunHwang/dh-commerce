@@ -1,5 +1,5 @@
 import CustomEditor from '@components/Editor';
-import { Cart, products } from '@prisma/client';
+import { Cart, Comment, OrderItem, products } from '@prisma/client';
 import { format } from 'date-fns';
 import { convertFromRaw, convertToRaw, EditorState } from 'draft-js';
 import { GetServerSidePropsContext } from 'next';
@@ -14,21 +14,31 @@ import { IconHeart, IconHeartbeat, IconShoppingCart } from '@tabler/icons';
 import { useSession } from 'next-auth/react';
 import { CountControl } from '@components/CountControl';
 import { CART_QUERY_KEY } from 'pages/cart';
+import { ORDER_QUERY_KEY } from 'pages/my';
+import CommentItem from '@components/CommentItem';
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const product = await fetch(`http://localhost:3000/api/get-product?id=${context.params?.id}`)
     .then((res) => res.json())
     .then((data) => data.items);
+
+  const comments = await fetch(`http://localhost:3000/api/get-comments?productId=${context.params?.id}`)
+    .then((res) => res.json())
+    .then((data) => data.items);
+
   return {
     props: {
       product: { ...product, images: [product.image_url, product.image_url] },
+      comments: comments,
     },
   };
 }
 
 const WISHLIST_QUERY_KEY = '/api/get-wishlist';
 
-export default function Products(props: { product: products & { images: string[] } }) {
+export interface CommentItemType extends Comment, OrderItem {}
+
+export default function Products(props: { product: products & { images: string[] }; comments: CommentItemType[] }) {
   const [index, setIndex] = useState(0);
   const { data: session } = useSession();
   const [quantity, setQuantity] = useState<number | undefined>(1);
@@ -103,6 +113,24 @@ export default function Products(props: { product: products & { images: string[]
     }
   );
 
+  const { mutate: addOrder } = useMutation<unknown, unknown, Omit<OrderItem, 'id'>[], any>(
+    (items) =>
+      fetch('/api/add-order', {
+        method: 'POST',
+        body: JSON.stringify({ items }),
+      })
+        .then((data) => data.json())
+        .then((res) => res.items),
+    {
+      onMutate: () => {
+        queryClient.invalidateQueries([ORDER_QUERY_KEY]);
+      },
+      onSuccess: () => {
+        router.push('/my');
+      },
+    }
+  );
+
   const product = props.product;
 
   const validate = (type: 'cart' | 'order') => {
@@ -111,13 +139,22 @@ export default function Products(props: { product: products & { images: string[]
       return;
     }
 
-    // TODO: 장바구니에 등록하는 기능 추가
     if (type === 'cart') {
       addCart({
         productId: product.id,
         quantity: quantity,
         amount: product.price * quantity,
       });
+    }
+    if (type === 'order') {
+      addOrder([
+        {
+          productId: product.id,
+          quantity: quantity,
+          price: product.price,
+          amount: product.price * quantity,
+        },
+      ]);
     }
   };
 
@@ -148,6 +185,10 @@ export default function Products(props: { product: products & { images: string[]
               ))}
             </div>
             {editorState != null && <CustomEditor editorState={editorState} readOnly />}
+            <div>
+              <p className="text-2xl font-semibold">후기</p>
+              {props.comments && props.comments.map((comment, idx) => <CommentItem key={idx} item={comment} />)}
+            </div>
           </div>
           <div style={{ maxWidth: 600 }} className="flex flex-col space-y-6">
             <div className="text-lg text-zinc-400">{CATEGORY_MAP[product.category_id - 1]}</div>
@@ -199,6 +240,24 @@ export default function Products(props: { product: products & { images: string[]
                 찜하기
               </Button>
             </div>
+            <Button
+              style={{ backgroundColor: 'black' }}
+              radius="xl"
+              size="md"
+              styles={{
+                root: { paddingRight: 14, height: 48 },
+              }}
+              onClick={() => {
+                if (session == null) {
+                  alert('로그인이 필요해요');
+                  router.push('/auth/login');
+                  return;
+                }
+                validate('order');
+              }}
+            >
+              구매하기
+            </Button>
             <div className="text-sm text-zinc-300">등록: {format(new Date(product.createdAt), 'yyyy년 M월 d일')}</div>
           </div>
         </div>
