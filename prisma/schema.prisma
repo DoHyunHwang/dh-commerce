@@ -8,7 +8,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
   referentialIntegrity = "prisma"
 }
 
@@ -30,7 +30,7 @@ model products {
 }
 
 model user {
-  id String @id @default(cuid())
+  id  String @id @default(cuid())
   name String?
   email String? @unique
   image String?
